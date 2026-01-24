@@ -1,0 +1,188 @@
+/* Modern Monochrome Theme - Noir/Minimalist Aesthetic */
+:root {
+  --bg-dark: #000000;
+  --bg-darker: #09090b;
+  --primary: #ffffff;
+  --primary-glow: rgba(255, 255, 255, 0.3);
+  --accent: #a1a1aa;
+  --success: #d4d4d8;
+  --text-main: #ffffff;
+  --text-muted: #ffffff;
+  --card-bg: #121212;
+  --card-border: #27272a;
+  --glass-blur: 0px; /* Removed blur for cleaner, sharper look */
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Navbar */
+.navbar {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+.navbar-brand {
+  color: var(--primary) !important;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Minimalist Cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: none;
+  border-radius: 0.5rem; /* Sharper corners */
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.card-header {
+  background: var(--bg-darker);
+  border-bottom: 1px solid var(--card-border);
+  border-radius: 0.5rem 0.5rem 0 0 !important;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Form Elements */
+textarea.form-control {
+  background-color: var(--bg-darker);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  font-family: "Fira Code", "Courier New", monospace;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+}
+
+textarea.form-control:focus {
+  background-color: #000;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+  color: #fff;
+}
+
+.form-label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Buttons - High Contrast */
+.btn-primary {
+  background: var(--primary);
+  color: #000;
+  border: 1px solid var(--primary);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #e5e5e5;
+  border-color: #e5e5e5;
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
+
+/* Metrics & Stats */
+.metric-card {
+  background: var(--bg-darker);
+  border: 1px solid var(--card-border);
+  border-radius: 0.25rem;
+  transition: border-color 0.2s;
+}
+
+.metric-card:hover {
+  border-color: var(--primary);
+}
+
+.metric-label {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* List Group */
+.list-group-item {
+  border-color: var(--card-border) !important;
+  transition: background 0.2s;
+}
+
+.list-group-item:hover {
+  background: var(--bg-darker) !important;
+}
+
+/* Utilities */
+.text-gradient {
+  background: linear-gradient(to right, #ffffff, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-soft-primary {
+  background: #27272a;
+  color: #fff;
+  border: 1px solid #3f3f46;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Text Colors override for specific elements */
+.text-info {
+  color: #ffffff !important;
+} /* White */
+.text-warning {
+  color: #ffffff !important;
+} /* White */
+.text-success {
+  color: #ffffff !important;
+} /* White */
+.text-muted {
+  color: #ffffff !important;
+}

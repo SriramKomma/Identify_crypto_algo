@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Crypto/Cipher Identification System</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet" />
+    <!-- Google Fonts: Poppins + Fira Code -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fira+Code&display=swap"
+      rel="stylesheet" />
+    <!-- FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="fa-solid fa-shield-halved me-2"></i>CipherID
+          <span class="fw-light">Pro</span>
+        </a>
+        <span class="navbar-text text-muted d-none d-md-block">
+          <i class="fa-solid fa-microchip me-1"></i> Advanced Cryptographic
+          Algorithm Identification
+        </span>
+      </div>
+    </nav>
+
+    <div class="container py-5 mt-5">
+      <div class="row g-4">
+        <!-- Left Column: Input & Prediction -->
+        <div class="col-lg-7">
+          <div class="card mb-4">
+            <div class="card-body p-4">
+              <h5 class="card-title mb-4 text-gradient">
+                <i class="fa-solid fa-magnifying-glass-chart me-2"></i>Analyze
+                Ciphertext
+              </h5>
+              <form method="post" action="{{ url_for('web.predict') }}">
+                <div class="mb-4">
+                  <label for="ciphertext" class="form-label">
+                    <i class="fa-solid fa-code me-1"></i> Input Data (Hex/Raw)
+                  </label>
+                  <textarea
+                    class="form-control shadow-none"
+                    id="ciphertext"
+                    name="ciphertext"
+                    rows="8"
+                    placeholder="Paste your encrypted text here..."
+                    required>
+{{ ciphertext or '' }}</textarea
+                  >
+                </div>
+
+                <div
+                  class="d-flex justify-content-between align-items-center mb-3">
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      id="use_cnn"
+                      name="use_cnn"
+                      {%
+                      if
+                      cnn_result
+                      %}checked{%
+                      endif
+                      %} />
+                    <label
+                      class="form-check-label small text-muted"
+                      for="use_cnn"
+                      >Enable Deep Learning (CNN)</label
+                    >
+                  </div>
+                  <button
+                    type="submit"
+                    class="btn btn-primary rounded-pill px-5">
+                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Identify
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {% if results %}
+          <div class="card border-0 position-relative overflow-hidden">
+            <!-- Background Glow Effect -->
+            <div
+              style="
+                position: absolute;
+                top: -50px;
+                right: -50px;
+                width: 100px;
+                height: 100px;
+                background: var(--primary);
+                filter: blur(60px);
+                opacity: 0.2;
+              "></div>
+
+            <div
+              class="card-header d-flex justify-content-between align-items-center py-3">
+              <h5 class="mb-0 text-white">
+                <i class="fa-solid fa-bullseye me-2"></i>Result
+              </h5>
+              <span class="badge badge-soft-primary rounded-pill px-3 py-2">
+                {{ predicted_algorithm }}
+              </span>
+            </div>
+            <div class="card-body p-4">
+              <div class="row align-items-center">
+                <div class="col-md-7">
+                  <p class="lead mb-2 text-white">
+                    Detected:
+                    <strong class="text-gradient"
+                      >{{ predicted_algorithm }}</strong
+                    >
+                  </p>
+                  <p class="text-muted small mb-4">
+                    {{ algorithm_description }}
+                  </p>
+
+                  {% if cnn_result %}
+                  <div
+                    class="alert alert-secondary bg-opacity-10 border-0 d-flex align-items-center">
+                    <i class="fa-solid fa-brain me-3 text-accent fa-lg"></i>
+                    <div>
+                      <div class="small text-muted text-uppercase fw-bold">
+                        CNN Verification
+                      </div>
+                      <div class="text-white">
+                        {{ cnn_result.label }} ({{ cnn_result.prob }}%)
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="col-md-5">
+                  <div style="position: relative; height: 160px; width: 100%">
+                    <canvas id="probChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="border-secondary my-4 opacity-25" />
+
+              <h6 class="text-muted small text-uppercase mb-3">
+                <i class="fa-solid fa-chart-simple me-2"></i>Analysis Metrics
+              </h6>
+              <div class="row g-2 text-center">
+                <div class="col-3">
+                  <div class="metric-card p-3 h-100">
+                    <div class="metric-label mb-1">Entropy</div>
+                    <div class="metric-value text-info">{{ meta.Entropy }}</div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="metric-card p-3 h-100">
+                    <div class="metric-label mb-1">Hex Ratio</div>
+                    <div class="metric-value text-warning">
+                      {{ meta.HexRatio }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="metric-card p-3 h-100">
+                    <div class="metric-label mb-1">Byte Mean</div>
+                    <div class="metric-value">{{ meta.ByteMean }}</div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="metric-card p-3 h-100">
+                    <div class="metric-label mb-1">Length</div>
+                    <div class="metric-value">{{ meta.Length }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Right Column: Stats & History -->
+        <div class="col-lg-5">
+          <!-- System Status / Stats -->
+          <div class="card mb-4">
+            <div class="card-header py-3">
+              <h6 class="mb-0 text-white">
+                <i class="fa-solid fa-server me-2"></i>System Performance
+              </h6>
+            </div>
+            <div class="card-body p-4">
+              <canvas id="statsChart" height="200"></canvas>
+              <p class="text-muted small mt-3 text-center mb-0">
+                <i class="fa-solid fa-check-circle text-success me-1"></i>
+                Active Learning Enabled
+              </p>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="card">
+            <div
+              class="card-header py-3 d-flex justify-content-between align-items-center">
+              <h6 class="mb-0 text-white">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Recent
+                Analysis
+              </h6>
+              <span class="badge bg-secondary rounded-pill"
+                >{{ history|length }}</span
+              >
+            </div>
+            <div class="list-group list-group-flush">
+              {% for item in history %}
+              <div class="list-group-item bg-transparent text-light px-4 py-3">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="text-white fw-medium"
+                    >{{ item.prediction }}</span
+                  >
+                  <small class="text-muted" style="font-size: 0.75rem"
+                    >{{ item.timestamp }}</small
+                  >
+                </div>
+                <div
+                  class="small text-muted text-truncate font-monospace opacity-75">
+                  {{ item.ciphertext }}
+                </div>
+              </div>
+              {% else %}
+              <div class="p-4 text-center text-muted small">
+                <i
+                  class="fa-regular fa-folder-open fa-2x mb-2 d-block opacity-50"></i>
+                No recent analysis found.
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer
+      class="text-center py-5 text-muted border-top border-secondary border-opacity-10 mt-5">
+      <div class="container">
+        <small class="d-block mb-2"
+          >Powered by Hybrid Ensemble (RF + XGBoost) & 1D-CNN</small
+        >
+        <small class="opacity-50"
+          >&copy; 2024 CipherID Pro. All rights reserved.</small
+        >
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Theme Colors (Monochrome)
+      const colors = {
+        primary: '#ffffff',
+        accent: '#a1a1aa',
+        success: '#d4d4d8',
+        warning: '#71717a',
+        text: '#fafafa',
+        grid: 'rgba(255, 255, 255, 0.1)'
+      };
+
+      // 1. Probability Chart (Donut)
+      {% if results %}
+      const ctxProb = document.getElementById('probChart').getContext('2d');
+      new Chart(ctxProb, {
+        type: 'doughnut',
+        data: {
+          labels: [{% for name, prob in results.items() if prob > 1 %}"{{ name }}",{% endfor %}],
+          datasets: [{
+            data: [{% for name, prob in results.items() if prob > 1 %}{{ prob }},{% endfor %}],
+            backgroundColor: ['#ffffff', '#e5e5e5', '#d4d4d4', '#a3a3a3', '#737373', '#525252'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleColor: '#fff',
+                bodyColor: '#cbd5e1',
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: true
+              }
+            },
+            cutout: '75%'
+          }
+        });
+        {% endif %}
+
+        // 2. System Stats Chart (Line)
+        fetch('/api/stats')
+          .then(response => response.json())
+          .then(data => {
+            const ctxStats = document.getElementById('statsChart').getContext('2d');
+          // Create gradient
+          const gradient = ctxStats.createLinearGradient(0, 0, 0, 400);
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+          gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+          new Chart(ctxStats, {
+              type: 'line',
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: 'Accuracy (%)',
+                  data: data.accuracy,
+                  borderColor: colors.primary,
+                  backgroundColor: gradient,
+                  borderWidth: 2,
+                  pointBackgroundColor: colors.primary,
+                  pointBorderColor: '#fff',
+                  tension: 0.4,
+                  fill: true
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#cbd5e1'
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: colors.grid },
+                    ticks: { color: '#64748b' }
+                  },
+                  x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b' }
+                  }
+                },
+                interaction: {
+                  mode: 'nearest',
+                  axis: 'x',
+                  intersect: false
+                }
+              }
+            });
+          });
+    </script>
+  </body>
+</html>

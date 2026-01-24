@@ -1,0 +1,50 @@
+# =========================
+# Core Data & ML Libraries
+# =========================
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.5.2
+joblib==1.4.2
+xgboost==2.1.2
+
+# =========================
+# Deep Learning
+# =========================
+tensorflow==2.20.0
+keras==3.12.0
+
+# =========================
+# Cryptography
+# =========================
+pycryptodome==3.21.0
+cryptography==43.0.1
+
+# =========================
+# Flask Web Framework
+# =========================
+Flask==3.0.3
+gunicorn==23.0.0
+Flask-SQLAlchemy==3.1.1
+
+# =========================
+# Visualization (optional)
+# =========================
+matplotlib==3.9.2
+seaborn==0.13.2
+plotly==5.24.1
+
+# =========================
+# Explainability / Feature Analysis
+# =========================
+shap==0.45.1
+
+# =========================
+# Utility & Progress Tracking
+# =========================
+tqdm==4.66.5
+
+# =========================
+# Testing
+# =========================
+pytest==8.0.0
+pytest-flask==1.3.0
