@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Algorithm Identifier</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 {
+            color: #00d4ff;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #000;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .result {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 153, 204, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .algorithm-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+        
+        .confidence {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .description {
+            color: #aaa;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .model-predictions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .model-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .model-name {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .model-prediction {
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+        
+        .model-confidence {
+            color: #00ff88;
+            font-size: 0.9rem;
+        }
+        
+        .inference-time {
+            text-align: right;
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+        
+        .error {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .algorithms-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .algo-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #00d4ff;
+        }
+        
+        .algo-item h3 {
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .algo-item p {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .api-docs {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+        
+        .api-docs pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        footer {
+            text-align: center;
+            color: #666;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Crypto Algorithm Identifier</h1>
+            <p class="subtitle">AI-powered identification of cryptographic algorithms from ciphertext</p>
+        </header>
+        
+        {% if error %}
+        <div class="error">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <h2>📝 Input Ciphertext</h2>
+            <form method="POST">
+                <textarea name="ciphertext" placeholder="Enter ciphertext (hex string or raw bytes)...">{{ ciphertext }}</textarea>
+                <button type="submit">🔍 Identify Algorithm</button>
+            </form>
+        </div>
+        
+        {% if result %}
+        <div class="card result">
+            <h2>🎯 Prediction Result</h2>
+            <div class="result-header">
+                <span class="algorithm-name">{{ result.algorithm }}</span>
+                <span class="confidence">{{ result.confidence }}% confidence</span>
+            </div>
+            <div class="description">
+                {{ result.description }}
+            </div>
+            
+            <h3 style="color: #888; font-size: 0.9rem; margin-bottom: 0.5rem;">Model Predictions:</h3>
+            <div class="model-predictions">
+                {% for model, pred in result.model_predictions.items() %}
+                <div class="model-card">
+                    <div class="model-name">{{ model.replace('_', ' ') }}</div>
+                    <div class="model-prediction">{{ pred.prediction }}</div>
+                    <div class="model-confidence">{{ pred.confidence }}%</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="inference-time">
+                ⏱️ Inference time: {{ result.inference_time_ms }} ms
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <h2>📚 Supported Algorithms</h2>
+            <div class="algorithms-list">
+                {% for algo, desc in algorithms.items() %}
+                <div class="algo-item">
+                    <h3>{{ algo }}</h3>
+                    <p>{{ desc[:100] }}...</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🔌 API Usage</h2>
+            <div class="api-docs">
+<pre>
+# Predict algorithm from ciphertext
+curl -X POST http://localhost:5000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"ciphertext": "YOUR_HEX_CIPHERTEXT_HERE"}'
+
+# Response:
+{
+  "algorithm": "AES",
+  "confidence": 95.5,
+  "description": "Advanced Encryption Standard...",
+  "model_predictions": {...},
+  "inference_time_ms": 12.5
+}
+</pre>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Cryptographic Algorithm Identification System | Built with Flask + scikit-learn</p>
+        </footer>
+    </div>
+</body>
+</html>

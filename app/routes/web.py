@@ -15,17 +15,39 @@ def index():
         # Fallback if DB is not ready
         history_list = []
         
-    return render_template("index.html", history=history_list)
+    return render_template("index.html", history=history_list, meta_inputs={}, ciphertext_only=False)
 
 @web_bp.route("/predict", methods=["POST"])
 def predict():
     ciphertext = request.form.get("ciphertext")
     use_cnn = request.form.get("use_cnn") == "on"
+    ciphertext_only = request.form.get("ciphertext_only") == "on"
     
     if not ciphertext:
         flash("Please enter a ciphertext.")
         return redirect(url_for("web.index"))
+    def _parse_int(value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
 
+    meta_inputs = {
+        "PlaintextLen": _parse_int(request.form.get("plaintext_len")),
+        "KeyLen": _parse_int(request.form.get("key_len")),
+        "BlockSize": _parse_int(request.form.get("block_size")),
+        "IVLen": _parse_int(request.form.get("iv_len")),
+        "Mode": request.form.get("mode") or None,
+    }
+
+    missing = [k for k, v in meta_inputs.items() if v is None]
+    if missing and not ciphertext_only:
+        flash("For 95%+ accuracy, provide all metadata fields or enable ciphertext-only mode (lower accuracy).")
+        return redirect(url_for("web.index"))
+    if missing and ciphertext_only:
+        flash("Ciphertext-only mode enabled; accuracy may be lower (<95%).")
+
+    hybrid_results, meta = predictor.predict_hybrid(ciphertext, meta_inputs)
     hybrid_results, meta = predictor.predict_hybrid(ciphertext)
     cnn_result = predictor.predict_cnn(ciphertext) if use_cnn else None
 
@@ -56,5 +78,7 @@ def predict():
         algorithm_description=description,
         cnn_result=cnn_result,
         meta=meta,
-        history=history_list
+        history=history_list,
+        meta_inputs=meta_inputs,
+        ciphertext_only=ciphertext_only
     )

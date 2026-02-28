@@ -4,17 +4,26 @@ import math
 import re
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Defer TensorFlow import to avoid deadlock on startup
+tf = None
+
+def _lazy_import_tf():
+    global tf
+    if tf is None:
+        import tensorflow as _tf
+        tf = _tf
+    return tf
 
 class PredictorService:
     def __init__(self):
         # Assuming run from root, so models are in ./models
         self.model_dir = os.path.join(os.getcwd(), 'models') 
-        self.hybrid_model = None
-        self.hybrid_le = None
-        self.cnn_model = None
-        self.cnn_le = None
+        self._hybrid_model = None
+        self._hybrid_le = None
+        self._cnn_model = None
+        self._cnn_le = None
+        self._models_loaded = False
         self.hex_re = re.compile(r'^[0-9a-fA-F]+$')
         self.algorithm_descriptions = {
             'AES': "Advanced Encryption Standard (AES) - Symmetric block cipher (128-bit block).",
@@ -25,7 +34,33 @@ class PredictorService:
             'ECC': "Elliptic Curve Cryptography - Asymmetric, high security with smaller keys.",
             'Diffie-Hellman': "Diffie-Hellman - Key exchange protocol."
         }
+        # Models are loaded lazily on first use
+
+    @property
+    def hybrid_model(self):
+        self._ensure_models_loaded()
+        return self._hybrid_model
+
+    @property
+    def hybrid_le(self):
+        self._ensure_models_loaded()
+        return self._hybrid_le
+
+    @property
+    def cnn_model(self):
+        self._ensure_models_loaded()
+        return self._cnn_model
+
+    @property
+    def cnn_le(self):
+        self._ensure_models_loaded()
+        return self._cnn_le
+
+    def _ensure_models_loaded(self):
+        if self._models_loaded:
+            return
         self._load_models()
+        self._models_loaded = True
 
     def _load_models(self):
         hybrid_path = os.path.join(self.model_dir, "hybrid_ensemble.pkl")
@@ -34,12 +69,13 @@ class PredictorService:
         cnn_le_path = os.path.join(self.model_dir, "cnn_label_encoder.pkl")
 
         if os.path.exists(hybrid_path):
-            self.hybrid_model = joblib.load(hybrid_path)
+            self._hybrid_model = joblib.load(hybrid_path)
         if os.path.exists(hybrid_le_path):
-            self.hybrid_le = joblib.load(hybrid_le_path)
+            self._hybrid_le = joblib.load(hybrid_le_path)
         if os.path.exists(cnn_path) and os.path.exists(cnn_le_path):
-            self.cnn_model = tf.keras.models.load_model(cnn_path)
-            self.cnn_le = joblib.load(cnn_le_path)
+            _lazy_import_tf()
+            self._cnn_model = tf.keras.models.load_model(cnn_path)
+            self._cnn_le = joblib.load(cnn_le_path)
 
     def shannon_entropy(self, s):
         if not s:
@@ -60,34 +96,50 @@ class PredictorService:
         except Exception:
             return 0.0, 0.0
 
-    def infer_features(self, ciphertext):
+    def infer_features(self, ciphertext, meta_inputs=None):
         ct = str(ciphertext).strip()
         ent = self.shannon_entropy(ct)
         hr = self.hex_ratio(ct)
         meanb, stdb = self.byte_stats(ct)
         length = len(ct)
-        
-        features = pd.DataFrame([[ent, hr, meanb, stdb, length]], 
-                                columns=["Entropy", "HexRatio", "ByteMean", "ByteStd", "CipherLen"])
-        
+        meta_inputs = meta_inputs or {}
+
+        features = pd.DataFrame([{
+            "Ciphertext": ct,
+            "PlaintextLen": meta_inputs.get("PlaintextLen"),
+            "KeyLen": meta_inputs.get("KeyLen"),
+            "BlockSize": meta_inputs.get("BlockSize"),
+            "IVLen": meta_inputs.get("IVLen"),
+            "Mode": meta_inputs.get("Mode"),
+            "Entropy": ent,
+            "HexRatio": hr,
+            "ByteMean": meanb,
+            "ByteStd": stdb,
+            "CipherLen": length
+        }])
+
         meta_display = {
             "Ciphertext": ct[:50] + "..." if len(ct) > 50 else ct,
             "Length": length,
             "Entropy": round(ent, 4),
             "HexRatio": round(hr, 2),
             "ByteMean": round(meanb, 2),
-            "ByteStd": round(stdb, 2)
+            "ByteStd": round(stdb, 2),
+            "PlaintextLen": meta_inputs.get("PlaintextLen"),
+            "KeyLen": meta_inputs.get("KeyLen"),
+            "BlockSize": meta_inputs.get("BlockSize"),
+            "IVLen": meta_inputs.get("IVLen"),
+            "Mode": meta_inputs.get("Mode")
         }
         return features, meta_display
 
-    def predict_hybrid(self, ciphertext):
+    def predict_hybrid(self, ciphertext, meta_inputs=None):
         if not self.hybrid_model or not self.hybrid_le:
             return None, None
             
-        features_df, meta_display = self.infer_features(ciphertext)
+        features_df, meta_display = self.infer_features(ciphertext, meta_inputs)
         
         input_df = features_df.copy()
-        input_df["Ciphertext"] = ciphertext
         
         probs = self.hybrid_model.predict_proba(input_df)
         labels = self.hybrid_le.inverse_transform(range(len(probs[0])))
@@ -111,10 +163,11 @@ class PredictorService:
         seq += [0] * (256 - len(seq))
         arr = np.array([seq])
 
-        preds = self.cnn_model.predict(arr)
-        idx = np.argmax(preds)
-        label = self.cnn_le.inverse_transform([idx])[0]
-        return {"label": label, "prob": round(float(preds[0][idx]) * 100, 2)}
+        preds = self.cnn_model.predict(arr)[0]
+        labels = self.cnn_le.inverse_transform(range(len(preds)))
+        
+        results = {labels[i]: round(float(preds[i]) * 100, 2) for i in range(len(labels))}
+        return results
 
     def get_description(self, algo_name):
         return self.algorithm_descriptions.get(algo_name, "Unknown Algorithm")
